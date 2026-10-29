@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}Тренажер ПДД | Автошкола-Эксперт DriveSecure{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row align-items-center mb-4">
+        <div class="col-md-8">
+            <h2 class="fw-bold mb-1"><i class="bi bi-journal-check text-primary"></i> Тренажер билетов ПДД РФ (Категории ABM)</h2>
+            <p class="text-muted mb-0">Актуальная база вопросов с подробными комментариями и цитатами из Правил Дорожного Движения</p>
+        </div>
+        <div class="col-md-4 text-md-end mt-3 mt-md-0">
+            {% if current_user.is_authenticated and current_user.is_student() %}
+                <a href="{{ url_for('pdd_exam') }}" class="btn btn-warning shadow-sm fw-bold">
+                    <i class="bi bi-award-fill me-1"></i> Сдать официальный экзамен (20 мин)
+                </a>
+            {% else %}
+                <a href="{{ url_for('login') }}" class="btn btn-outline-primary btn-sm">
+                    Войдите для фиксации результатов сдачи
+                </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- ИНФОРМАЦИОННЫЙ БЛОК -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <div class="card p-3 border-start border-4 border-primary">
+                <div class="fw-bold">40 Экзаменационных билетов</div>
+                <div class="small text-muted">По 20 вопросов в каждом билете в строгом соответствии с регламентом ГИБДД</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card p-3 border-start border-4 border-success">
+                <div class="fw-bold">Моментальная проверка</div>
+                <div class="small text-muted">Зеленая и красная подсветка ответа сразу после выбора с разбором ошибок</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card p-3 border-start border-4 border-info">
+                <div class="fw-bold">Защищенный внутренний экзамен</div>
+                <div class="small text-muted">Криптографическая подпись HMAC-SHA256 каждого сданного экзамена</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- СЕТКА БИЛЕТОВ -->
+    <h5 class="fw-bold mb-3">Выберите билет для тренировки:</h5>
+    <div class="row g-3">
+        {% for ticket_num in range(1, (tickets_count|int) + 1) %}
+            <div class="col-xl-2 col-lg-3 col-md-4 col-6">
+                <div class="card h-100 text-center p-3">
+                    <div class="fs-4 fw-bold text-primary mb-1">Билет №{{ ticket_num }}</div>
+                    <div class="small text-muted mb-3">20 вопросов</div>
+                    <a href="{{ url_for('pdd_practice', ticket_number=ticket_num) }}" class="btn btn-outline-primary btn-sm mt-auto">
+                        Тренироваться
+                    </a>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

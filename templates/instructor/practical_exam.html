@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}Прием практического экзамена | DriveSecure{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card p-4 shadow-sm">
+                <div class="d-flex align-items-center gap-3 mb-3 border-bottom pb-3">
+                    <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 56px; height: 56px; font-size: 1.6rem;">
+                        <i class="bi bi-car-front-fill"></i>
+                    </div>
+                    <div>
+                        <h4 class="fw-bold mb-0">Прием практического экзамена по вождению</h4>
+                        <div class="text-muted small">Внутренний экзамен: Автодром + Городской маршрут</div>
+                    </div>
+                </div>
+
+                <div class="alert alert-info py-2 small mb-4">
+                    <i class="bi bi-shield-lock me-1"></i> <strong>Регламент ИБ:</strong> После отправки протокол подписывается секретным ключом экзаменатора <code>HMAC-SHA256</code> и встраивается в неизменяемую блокчейн-цепочку БД автошколы.
+                </div>
+
+                <form method="POST" action="{{ url_for('practical_exam') }}">
+                    {{ form.hidden_tag() }}
+
+                    <div class="mb-3">
+                        {{ form.student_id.label(class="form-label small fw-semibold") }}
+                        {{ form.student_id(class="form-select" + (" is-invalid" if form.student_id.errors else "")) }}
+                        {% for error in form.student_id.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            {{ form.score.label(class="form-label small fw-semibold") }}
+                            {{ form.score(class="form-control", type="number", min="0", max="15") }}
+                            <div class="form-text small text-muted">По регламенту: до 4 баллов — СДАН, от 5 баллов — НЕ СДАН.</div>
+                        </div>
+                        <div class="col-md-6 d-flex align-items-center mt-4">
+                            <div class="form-check">
+                                {{ form.is_passed(class="form-check-input") }}
+                                {{ form.is_passed.label(class="form-check-label fw-semibold") }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        {{ form.notes.label(class="form-label small fw-semibold") }}
+                        {{ form.notes(class="form-control", rows="3", placeholder="Упражнения: параллельная парковка - зачет, горка (эстакада) - зачет, город: проезд перекрестка...") }}
+                        <div class="form-text small text-muted"><i class="bi bi-shield-check text-success"></i> Защита от XSS: теги и вредоносный код фильтруются модулем bleach.</div>
+                    </div>
+
+                    <div class="d-grid">
+                        {{ form.submit(class="btn btn-success btn-lg fw-bold") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

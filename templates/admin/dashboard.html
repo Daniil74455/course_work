@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+
+{% block title %}Аналитический дашборд ИБ | Автошкола-Эксперт DriveSecure{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <h2 class="fw-bold mb-1"><i class="bi bi-speedometer text-primary"></i> Панель управления и мониторинг ИБ</h2>
+            <p class="text-muted mb-0">Сводная бизнес-аналитика и статус информационной безопасности системы</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('admin_integrity') }}" class="btn btn-success shadow-sm">
+                <i class="bi bi-shield-shaded me-1"></i> Сканер целостности БД
+            </a>
+            <a href="{{ url_for('admin_audit') }}" class="btn btn-outline-secondary">
+                <i class="bi bi-journal-code me-1"></i> Аудит
+            </a>
+        </div>
+    </div>
+
+    <!-- ИНДИКАТОР БЕЗОПАСНОСТИ -->
+    {% if integrity_status.is_healthy %}
+        <div class="alert alert-success d-flex align-items-center p-3 mb-4 shadow-sm" role="alert">
+            <div class="fs-1 me-3"><i class="bi bi-shield-fill-check text-success"></i></div>
+            <div>
+                <h5 class="alert-heading fw-bold mb-1">Целостность базы данных подтверждена!</h5>
+                <div class="small">
+                    Все {{ integrity_status.total }} записей экзаменов проверены: цифровые подписи HMAC-SHA256 подлинны, блокчейн-цепочка хешей непрерывна. Следов фальсификации не обнаружено.
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="alert alert-danger d-flex align-items-center p-3 mb-4 shadow-sm" role="alert">
+            <div class="fs-1 me-3"><i class="bi bi-shield-fill-exclamation text-danger"></i></div>
+            <div>
+                <h5 class="alert-heading fw-bold mb-1">🚨 ВНИМАНИЕ: Обнаружено нарушение целостности базы данных!</h5>
+                <div class="small">
+                    Обнаружено скомпрометированных записей: {{ integrity_status.tampered_count }}, разрывов цепочки хешей: {{ integrity_status.chain_breaks_count }}!
+                    <a href="{{ url_for('admin_integrity') }}" class="alert-link ms-2">Перейти к детальному отчету сканера</a>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- КАРТОЧКИ КЛЮЧЕВЫХ ПОКАЗАТЕЛЕЙ -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-2 col-6">
+            <div class="card p-3 stat-card">
+                <div class="fs-2 fw-bold text-primary">{{ total_users }}</div>
+                <div class="text-muted small text-uppercase">Пользователей</div>
+            </div>
+        </div>
+        <div class="col-md-2 col-6">
+            <div class="card p-3 stat-card">
+                <div class="fs-2 fw-bold text-primary">{{ total_students }}</div>
+                <div class="text-muted small text-uppercase">Курсантов</div>
+            </div>
+        </div>
+        <div class="col-md-2 col-6">
+            <div class="card p-3 stat-card">
+                <div class="fs-2 fw-bold text-primary">{{ total_instructors }}</div>
+                <div class="text-muted small text-uppercase">Инструкторов</div>
+            </div>
+        </div>
+        <div class="col-md-2 col-6">
+            <div class="card p-3 stat-card">
+                <div class="fs-2 fw-bold text-primary">{{ total_bookings }}</div>
+                <div class="text-muted small text-uppercase">Записей вождения</div>
+            </div>
+        </div>
+        <div class="col-md-2 col-6">
+            <div class="card p-3 stat-card security">
+                <div class="fs-2 fw-bold text-success">{{ total_exams }}</div>
+                <div class="text-muted small text-uppercase">Протоколов HMAC</div>
+            </div>
+        </div>
+        <div class="col-md-2 col-6">
+            <div class="card p-3 stat-card">
+                <div class="fs-2 fw-bold text-warning">{{ active_sessions }}</div>
+                <div class="text-muted small text-uppercase">Активных сессий</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ГРАФИКИ БИЗНЕС-АНАЛИТИКИ -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-8">
+            <div class="card p-4">
+                <h5 class="fw-bold mb-3"><i class="bi bi-graph-up text-primary"></i> Динамика практических занятий по месяцам</h5>
+                <canvas id="monthlyBookingsChart" height="120"></canvas>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card p-4">
+                <h5 class="fw-bold mb-3"><i class="bi bi-pie-chart text-success"></i> Результаты сдачи экзаменов</h5>
+                <canvas id="examResultsChart" height="240"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- ПОСЛЕДНИЕ СОБЫТИЯ БЕЗОПАСНОСТИ -->
+    <div class="card p-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="fw-bold mb-0"><i class="bi bi-activity text-danger"></i> Последние события безопасности (Audit Log)</h5>
+            <a href="{{ url_for('admin_audit') }}" class="btn btn-outline-secondary btn-sm">Открыть полный журнал</a>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle small mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Время (UTC)</th>
+                        <th>Событие</th>
+                        <th>Пользователь</th>
+                        <th>IP-адрес</th>
+                        <th>Описание события</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for l in recent_logs %}
+                        <tr>
+                            <td>{{ l.created_at.strftime('%d.%m.%Y %H:%M:%S') }}</td>
+                            <td>
+                                <span class="badge {% if 'FAIL' in l.event_type or 'ALERT' in l.event_type or 'TAMPER' in l.event_type %}bg-danger{% elif 'SUCCESS' in l.event_type or 'PASSED' in l.event_type %}bg-success{% else %}bg-secondary{% endif %}">
+                                    {{ l.event_type }}
+                                </span>
+                            </td>
+                            <td>{{ l.user.email if l.user else 'Анонимный / Система' }}</td>
+                            <td><code>{{ l.ip_address }}</code></td>
+                            <td>{{ l.description }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // 1. График динамики занятий
+        const ctx1 = document.getElementById('monthlyBookingsChart').getContext('2d');
+        new Chart(ctx1, {
+            type: 'line',
+            data: {
+                labels: ['Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь'],
+                datasets: [{
+                    label: 'Проведено уроков вождения',
+                    data: [340, 480, 520, 610, 750, 890],
+                    borderColor: '#0f4c81',
+                    backgroundColor: 'rgba(15, 76, 129, 0.1)',
+                    tension: 0.3,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { position: 'top' } }
+            }
+        });
+
+        // 2. Круговая диаграмма результатов экзаменов
+        const ctx2 = document.getElementById('examResultsChart').getContext('2d');
+        new Chart(ctx2, {
+            type: 'doughnut',
+            data: {
+                labels: ['Сдано успешно', 'Не сдан'],
+                datasets: [{
+                    data: [{{ integrity_status.valid_count or 92 }}, {{ (integrity_status.total - integrity_status.valid_count) if integrity_status.total > integrity_status.valid_count else 8 }}],
+                    backgroundColor: ['#198754', '#dc3545']
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { position: 'bottom' } }
+            }
+        });
+    });
+</script>
+{% endblock %}

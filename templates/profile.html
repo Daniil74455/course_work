@@ -1,0 +1,218 @@
+{% extends "base.html" %}
+
+{% block title %}Личный кабинет | Автошкола-Эксперт DriveSecure{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <!-- ЛЕВАЯ КОЛОНКА: ДАННЫЕ ПРОФИЛЯ -->
+        <div class="col-lg-4 mb-4">
+            <div class="card p-4">
+                <div class="text-center mb-3">
+                    <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 72px; height: 72px; font-size: 2rem;">
+                        <i class="bi bi-person-badge"></i>
+                    </div>
+                    <h4 class="fw-bold mt-2 mb-0">{{ current_user.full_name }}</h4>
+                    <span class="badge bg-primary text-uppercase">{{ current_user.role }}</span>
+                    <div class="text-muted small mt-1">{{ current_user.email }}</div>
+                </div>
+
+                <div class="border-top pt-3">
+                    {% if current_user.is_student() and current_user.student_profile %}
+                        <div class="d-flex justify-content-between py-1 small">
+                            <span class="text-muted">Категория:</span>
+                            <span class="fw-bold">{{ current_user.student_profile.category }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between py-1 small">
+                            <span class="text-muted">Теория пройдено:</span>
+                            <span class="fw-bold">{{ current_user.student_profile.theory_hours }} ч.</span>
+                        </div>
+                        <div class="d-flex justify-content-between py-1 small">
+                            <span class="text-muted">Практика пройдено:</span>
+                            <span class="fw-bold text-success">{{ current_user.student_profile.practice_hours }} ч.</span>
+                        </div>
+                        <div class="d-flex justify-content-between py-1 small">
+                            <span class="text-muted">Статус обучения:</span>
+                            <span class="badge bg-info text-dark">{{ current_user.student_profile.status }}</span>
+                        </div>
+                    {% elif current_user.is_instructor() and current_user.instructor_profile %}
+                        <div class="d-flex justify-content-between py-1 small">
+                            <span class="text-muted">Автомобиль:</span>
+                            <span class="fw-bold">{{ current_user.instructor_profile.car_model }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between py-1 small">
+                            <span class="text-muted">Госномер:</span>
+                            <span class="badge bg-dark">{{ current_user.instructor_profile.car_number }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between py-1 small">
+                            <span class="text-muted">Трансмиссия:</span>
+                            <span class="badge bg-secondary">{{ current_user.instructor_profile.transmission }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between py-1 small">
+                            <span class="text-muted">Ставка:</span>
+                            <span class="fw-bold text-success">{{ int(current_user.instructor_profile.hourly_rate) }} ₽/ч</span>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="alert alert-success p-2 mt-3 mb-0 small">
+                    <i class="bi bi-shield-check me-1"></i> <strong>Шифрование 152-ФЗ активно:</strong> Ваши телефон, паспорт и медсправка хранятся в БД в виде Fernet-шифротекста.
+                </div>
+            </div>
+        </div>
+
+        <!-- ПРАВАЯ КОЛОНКА: РЕДАКТИРОВАНИЕ ДАННЫХ И ИСТОРИЯ -->
+        <div class="col-lg-8">
+            <div class="card p-4 mb-4">
+                <h5 class="fw-bold mb-3"><i class="bi bi-pencil-square text-primary"></i> Редактирование профиля и смена пароля</h5>
+                <form method="POST" action="{{ url_for('profile') }}">
+                    {{ form.hidden_tag() }}
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            {{ form.full_name.label(class="form-label small fw-semibold") }}
+                            {{ form.full_name(class="form-control") }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.phone.label(class="form-label small fw-semibold") }}
+                            {{ form.phone(class="form-control") }}
+                        </div>
+                    </div>
+
+                    {% if current_user.is_student() %}
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                {{ form.passport_data.label(class="form-label small fw-semibold") }}
+                                {{ form.passport_data(class="form-control", placeholder="Серия, номер, кем выдан") }}
+                                <div class="form-text small"><i class="bi bi-lock-fill text-success"></i> Зашифровано AES-128-CBC</div>
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.medical_cert.label(class="form-label small fw-semibold") }}
+                                {{ form.medical_cert(class="form-control", placeholder="№ справки 003-В/у") }}
+                                <div class="form-text small"><i class="bi bi-lock-fill text-success"></i> Зашифровано AES-128-CBC</div>
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    <h6 class="fw-bold mt-4 mb-2 border-top pt-3 text-muted">Смена пароля (необязательно)</h6>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            {{ form.old_password.label(class="form-label small") }}
+                            {{ form.old_password(class="form-control", placeholder="Текущий пароль") }}
+                        </div>
+                        <div class="col-md-4">
+                            {{ form.new_password.label(class="form-label small") }}
+                            {{ form.new_password(class="form-control", placeholder="Новый пароль") }}
+                        </div>
+                        <div class="col-md-4">
+                            {{ form.confirm_new_password.label(class="form-label small") }}
+                            {{ form.confirm_new_password(class="form-control", placeholder="Повторите") }}
+                        </div>
+                    </div>
+
+                    <div class="text-end">
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+
+            {% if current_user.is_student() %}
+                <!-- МОИ ЗАПИСИ НА ВОЖДЕНИЕ -->
+                <div class="card p-4 mb-4">
+                    <h5 class="fw-bold mb-3"><i class="bi bi-calendar-event text-primary"></i> Мои записи на вождение</h5>
+                    {% if my_bookings %}
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle small mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Дата</th>
+                                        <th>Время</th>
+                                        <th>Инструктор</th>
+                                        <th>Автомобиль</th>
+                                        <th>Статус</th>
+                                        <th>Действие</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for b in my_bookings %}
+                                        <tr>
+                                            <td><strong>{{ b.slot.date.strftime('%d.%m.%Y') if b.slot else '-' }}</strong></td>
+                                            <td>{{ b.slot.start_time.strftime('%H:%M') }} - {{ b.slot.end_time.strftime('%H:%M') if b.slot else '' }}</td>
+                                            <td>{{ b.instructor.full_name if b.instructor else 'Инструктор' }}</td>
+                                            <td>{{ b.instructor.instructor_profile.car_model if b.instructor and b.instructor.instructor_profile else '-' }}</td>
+                                            <td>
+                                                {% if b.status == 'booked' %}
+                                                    <span class="badge bg-warning text-dark">Забронировано</span>
+                                                {% elif b.status == 'completed' %}
+                                                    <span class="badge bg-success">Проведено</span>
+                                                {% else %}
+                                                    <span class="badge bg-secondary">Отменено</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if b.status == 'booked' %}
+                                                    <form method="POST" action="{{ url_for('cancel_booking', booking_id=b.id) }}" onsubmit="return confirm('Отменить запись на вождение?');">
+                                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                        <button type="submit" class="btn btn-outline-danger btn-sm py-0">Отменить</button>
+                                                    </form>
+                                                {% else %}
+                                                    <span class="text-muted">-</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-muted small text-center py-3">У вас пока нет активных записей на вождение. <a href="{{ url_for('driving_calendar') }}">Выбрать свободный слот</a>.</div>
+                    {% endif %}
+                </div>
+
+                <!-- МОИ ЭКЗАМЕНАЦИОННЫЕ ПРОТОКОЛЫ -->
+                <div class="card p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="fw-bold mb-0"><i class="bi bi-award text-success"></i> Результаты внутренних экзаменов</h5>
+                        <a href="{{ url_for('my_exams_view') }}" class="btn btn-outline-success btn-sm">Электронные сертификаты</a>
+                    </div>
+                    {% if my_exams %}
+                        <div class="list-group list-group-flush small">
+                            {% for ex in my_exams %}
+                                <div class="list-group-item px-0 py-3 border-bottom">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <h6 class="fw-bold mb-0">
+                                            {% if ex.exam_type == 'theory' %}
+                                                📘 Теоретический экзамен ПДД
+                                            {% else %}
+                                                🚗 Практический экзамен (Автодром + Город)
+                                            {% endif %}
+                                        </h6>
+                                        {% if ex.is_passed %}
+                                            <span class="badge bg-success fs-6"><i class="bi bi-check-lg"></i> СДАН</span>
+                                        {% else %}
+                                            <span class="badge bg-danger fs-6"><i class="bi bi-x-lg"></i> НЕ СДАН</span>
+                                        {% endif %}
+                                    </div>
+                                    <div class="text-muted mb-2">
+                                        Дата сдачи: {{ ex.passed_at.strftime('%d.%m.%Y %H:%M') }} | Результат: {{ ex.score }} {{ 'баллов' if ex.exam_type == 'theory' else 'штрафных баллов' }}
+                                    </div>
+                                    <div class="d-flex flex-wrap align-items-center gap-2">
+                                        <span class="signature-badge">
+                                            <i class="bi bi-shield-check"></i> HMAC: {{ ex.signature[:20] }}...
+                                        </span>
+                                        <span class="hash-text">
+                                            Hash: {{ ex.record_hash[:16] }}...
+                                        </span>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-muted small text-center py-3">Вы еще не проходили внутренние экзамены. Вы можете <a href="{{ url_for('pdd_exam') }}">сдать теоретический экзамен ПДД</a>.</div>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

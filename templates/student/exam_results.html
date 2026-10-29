@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block title %}Реестр внутренних экзаменов | DriveSecure{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <h2 class="fw-bold mb-1"><i class="bi bi-shield-check text-success"></i> Электронный реестр экзаменов автошколы</h2>
+            <p class="text-muted mb-0">Все протоколы защищены от фальсификации цифровой подписью HMAC-SHA256 и связаны в блокчейн-цепочку хешей</p>
+        </div>
+        {% if current_user.is_instructor() or current_user.is_admin() %}
+            <a href="{{ url_for('practical_exam') }}" class="btn btn-primary btn-sm">
+                <i class="bi bi-plus-circle"></i> Провести практический экзамен
+            </a>
+        {% endif %}
+    </div>
+
+    {% if exams %}
+        <div class="row g-4">
+            {% for ex in exams %}
+                <div class="col-lg-6">
+                    <div class="card h-100 p-4 border-start border-4 {{ 'border-success' if ex.is_passed else 'border-danger' }}">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div>
+                                <h5 class="fw-bold mb-0">
+                                    {% if ex.exam_type == 'theory' %}
+                                        📘 Теория (ПДД РФ)
+                                    {% else %}
+                                        🚗 Практика (Автодром + Город)
+                                    {% endif %}
+                                </h5>
+                                <div class="text-muted small">Протокол #{{ ex.id }} от {{ ex.passed_at.strftime('%d.%m.%Y %H:%M') }}</div>
+                            </div>
+                            <span class="badge {{ 'bg-success' if ex.is_passed else 'bg-danger' }} fs-6 px-3 py-2">
+                                {{ 'СДАН' if ex.is_passed else 'НЕ СДАН' }}
+                            </span>
+                        </div>
+
+                        <div class="bg-light p-2 rounded small mb-3">
+                            <div class="d-flex justify-content-between py-1">
+                                <span class="text-muted">Курсант:</span>
+                                <span class="fw-bold">{{ ex.student.full_name if ex.student else 'Неизвестен' }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between py-1">
+                                <span class="text-muted">Экзаменатор:</span>
+                                <span>{{ ex.examiner.full_name if ex.examiner else 'Автоматическая система ПДД' }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between py-1">
+                                <span class="text-muted">Результат:</span>
+                                <span class="fw-bold {{ 'text-success' if ex.is_passed else 'text-danger' }}">
+                                    {% if ex.exam_type == 'theory' %}
+                                        {{ ex.score }} / 20 верных ответов
+                                    {% else %}
+                                        {{ ex.score }} штрафных баллов
+                                    {% endif %}
+                                </span>
+                            </div>
+                            {% if ex.notes %}
+                                <div class="py-1 border-top mt-1">
+                                    <span class="text-muted">Замечания:</span>
+                                    <div>{{ ex.notes }}</div>
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mt-auto border-top pt-2 small">
+                            <div class="mb-1">
+                                <span class="text-muted">Цифровая подпись HMAC-SHA256:</span>
+                                <div class="hash-text text-success fw-bold">{{ ex.signature }}</div>
+                            </div>
+                            <div class="mb-1">
+                                <span class="text-muted">Хеш блока (Record Hash):</span>
+                                <div class="hash-text">{{ ex.record_hash }}</div>
+                            </div>
+                            <div>
+                                <span class="text-muted">Связка с цепочкой (Prev Hash):</span>
+                                <div class="hash-text text-muted">{{ ex.prev_hash }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="card p-5 text-center text-muted">
+            <div class="fs-1 mb-2">📋</div>
+            <h5>В реестре пока нет записей экзаменов.</h5>
+            <p class="small">Курсанты могут сдать теоретический экзамен ПДД, а инструкторы — провести практический экзамен.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

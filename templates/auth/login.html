@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}Вход в систему | Автошкола-Эксперт DriveSecure{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-5 col-lg-4">
+            <div class="card p-4 shadow-sm">
+                <div class="text-center mb-4">
+                    <div class="fs-1 text-primary mb-2"><i class="bi bi-shield-lock"></i></div>
+                    <h4 class="fw-bold">Авторизация</h4>
+                    <p class="text-muted small">Введите email и пароль для входа в ИС</p>
+                </div>
+
+                <form method="POST" action="{{ url_for('login') }}">
+                    {{ form.hidden_tag() }}
+
+                    <div class="mb-3">
+                        {{ form.email.label(class="form-label small fw-semibold") }}
+                        {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else ""), placeholder="user@autoschool.ru") }}
+                        {% for error in form.email.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.password.label(class="form-label small fw-semibold") }}
+                        {{ form.password(class="form-control" + (" is-invalid" if form.password.errors else ""), placeholder="••••••••") }}
+                        {% for error in form.password.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mb-3 form-check">
+                        {{ form.remember_me(class="form-check-input") }}
+                        {{ form.remember_me.label(class="form-check-label small") }}
+                    </div>
+
+                    <div class="d-grid mb-3">
+                        {{ form.submit(class="btn btn-primary btn-block") }}
+                    </div>
+                </form>
+
+                <div class="text-center small">
+                    Еще нет аккаунта? <a href="{{ url_for('register') }}" class="text-primary fw-semibold">Зарегистрироваться</a>
+                </div>
+            </div>
+
+            <!-- ДЕМО-ДОСТУПЫ ДЛЯ ПРОВЕРКИ КУРСОВОЙ РАБОТЫ -->
+            <div class="card p-3 mt-3 bg-light border-0">
+                <div class="fw-bold small text-muted mb-2"><i class="bi bi-key-fill text-warning"></i> Тестовые учетные записи:</div>
+                <div class="accordion accordion-flush" id="demoAccounts">
+                    <div class="accordion-item bg-transparent">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed py-2 px-0 bg-transparent small" type="button" data-bs-toggle="collapse" data-bs-target="#demoStudent">
+                                🎓 Курсант (Ученик)
+                            </button>
+                        </h2>
+                        <div id="demoStudent" class="accordion-collapse collapse" data-bs-parent="#demoAccounts">
+                            <div class="accordion-body px-0 py-1 small">
+                                <code>student@autoschool.ru</code> / <code>student123</code>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item bg-transparent">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed py-2 px-0 bg-transparent small" type="button" data-bs-toggle="collapse" data-bs-target="#demoInstructor">
+                                🚗 Инструктор по вождению
+                            </button>
+                        </h2>
+                        <div id="demoInstructor" class="accordion-collapse collapse" data-bs-parent="#demoAccounts">
+                            <div class="accordion-body px-0 py-1 small">
+                                <code>instructor@autoschool.ru</code> / <code>instructor123</code>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item bg-transparent">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed py-2 px-0 bg-transparent small" type="button" data-bs-toggle="collapse" data-bs-target="#demoAdmin">
+                                🛡️ Администратор
+                            </button>
+                        </h2>
+                        <div id="demoAdmin" class="accordion-collapse collapse" data-bs-parent="#demoAccounts">
+                            <div class="accordion-body px-0 py-1 small">
+                                <code>admin@autoschool.ru</code> / <code>admin123</code>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item bg-transparent">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed py-2 px-0 bg-transparent small" type="button" data-bs-toggle="collapse" data-bs-target="#demoOwner">
+                                👑 Владелец (Супер-админ)
+                            </button>
+                        </h2>
+                        <div id="demoOwner" class="accordion-collapse collapse" data-bs-parent="#demoAccounts">
+                            <div class="accordion-body px-0 py-1 small">
+                                <code>owner@autoschool.ru</code> / <code>owner123</code>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block title %}Доступ запрещен (403) | DriveSecure{% endblock %}
+
+{% block content %}
+<div class="container py-5 text-center">
+    <div class="display-1 text-danger fw-bold mb-3">403</div>
+    <h3 class="fw-bold mb-3">Доступ ограничен политикой безопасности RBAC</h3>
+    <p class="text-muted mx-auto mb-4" style="max-width: 500px;">
+        У вашей учетной записи недостаточно полномочий для просмотра данного ресурса или выполнения запрашиваемого действия. Попытка несанкционированного доступа зафиксирована в журнале аудита.
+    </p>
+    <a href="{{ url_for('index') }}" class="btn btn-primary">Вернуться на главную</a>
+</div>
+{% endblock %}

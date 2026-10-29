@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+
+{% block title %}Главная | Автошкола-Эксперт DriveSecure{% endblock %}
+
+{% block content %}
+<!-- HERO BANNER -->
+<section class="hero-section">
+    <div class="container text-center py-4">
+        <div class="badge bg-warning text-dark mb-3 px-3 py-2 fs-6">
+            <i class="bi bi-shield-check"></i> Защищенная образовательная среда по стандарту 152-ФЗ
+        </div>
+        <h1 class="display-4 fw-bold mb-3">Официальная Автошкола «Эксперт»</h1>
+        <p class="lead text-light mb-4 mx-auto" style="max-width: 720px;">
+            Современная подготовка водителей категорий A, B, C с удобной онлайн-записью на вождение, официальным тренажером билетов ПДД и криптографической защитой протоколов сдачи экзаменов от фальсификации.
+        </p>
+        <div class="d-flex flex-wrap justify-content-center gap-3">
+            <a href="{{ url_for('driving_calendar') }}" class="btn btn-success btn-lg px-4 shadow">
+                <i class="bi bi-calendar-check me-2"></i>Записаться на вождение
+            </a>
+            <a href="{{ url_for('pdd_index') }}" class="btn btn-outline-light btn-lg px-4 shadow-sm">
+                <i class="bi bi-journal-check me-2"></i>Тренажер билетов ПДД
+            </a>
+            {% if current_user.is_authenticated and current_user.is_student() %}
+                <a href="{{ url_for('pdd_exam') }}" class="btn btn-warning btn-lg px-4 shadow">
+                    <i class="bi bi-award me-2"></i>Сдать внутренний экзамен
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+<div class="container mb-5">
+    <!-- СТАТИСТИЧЕСКИЕ СЧЕТЧИКИ -->
+    <div class="row g-4 mb-5 text-center">
+        <div class="col-md-3 col-6">
+            <div class="card p-3 stat-card">
+                <div class="fs-1 fw-bold text-primary">{{ total_students }}</div>
+                <div class="text-muted small text-uppercase fw-semibold">Курсантов обучается</div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="card p-3 stat-card">
+                <div class="fs-1 fw-bold text-primary">{{ total_instructors }}</div>
+                <div class="text-muted small text-uppercase fw-semibold">Опытных инструкторов</div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="card p-3 stat-card security">
+                <div class="fs-1 fw-bold text-success">{{ total_exams }}</div>
+                <div class="text-muted small text-uppercase fw-semibold">Сдано экзаменов</div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="card p-3 stat-card security">
+                <div class="fs-1 fw-bold text-success">{{ pass_rate }}%</div>
+                <div class="text-muted small text-uppercase fw-semibold">Успешность сдачи в ГИБДД</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- КЛЮЧЕВЫЕ ПРЕИМУЩЕСТВА И БЕЗОПАСНОСТЬ -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-4">
+            <div class="card h-100 p-4">
+                <div class="fs-1 text-primary mb-3"><i class="bi bi-calendar2-range"></i></div>
+                <h5 class="fw-bold">Гибкая запись на вождение</h5>
+                <p class="text-muted mb-0">
+                    Интерактивное расписание на базе FullCalendar. Выбирайте удобное время, инструктора и тип трансмиссии (МКПП или АКПП) в один клик.
+                </p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 p-4">
+                <div class="fs-1 text-success mb-3"><i class="bi bi-shield-lock-fill"></i></div>
+                <h5 class="fw-bold">Защита от фальсификации</h5>
+                <p class="text-muted mb-0">
+                    Каждый протокол сдачи экзамена подписывается алгоритмом <strong>HMAC-SHA256</strong> и включается в блокчейн-цепочку хешей. Подделать результат невозможно.
+                </p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 p-4">
+                <div class="fs-1 text-info mb-3"><i class="bi bi-cpu-fill"></i></div>
+                <h5 class="fw-bold">Шифрование данных (152-ФЗ)</h5>
+                <p class="text-muted mb-0">
+                    Паспортные данные курсантов, телефоны и номера медсправок зашифрованы алгоритмом Fernet (AES-128-CBC) в состоянии покоя.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ВИТРИНА ИНСТРУКТОРОВ -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold mb-1">Наши инструкторы и учебные автомобили</h3>
+            <p class="text-muted mb-0">Аттестованные преподаватели с подтвержденным стажем</p>
+        </div>
+        <a href="{{ url_for('driving_catalog') }}" class="btn btn-outline-primary">
+            Смотреть всех <i class="bi bi-arrow-right"></i>
+        </a>
+    </div>
+
+    <div class="row g-4 mb-5">
+        {% for inst in instructors %}
+            <div class="col-md-4 col-sm-6">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center gap-3 mb-3">
+                            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 52px; height: 52px; font-size: 1.4rem;">
+                                <i class="bi bi-person-fill"></i>
+                            </div>
+                            <div>
+                                <h5 class="card-title mb-0 fw-bold">{{ inst.user.full_name }}</h5>
+                                <div class="text-warning small">
+                                    {% for _ in range(inst.rating|int) %}★{% endfor %}
+                                    <span class="text-dark fw-bold ms-1">{{ inst.rating }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="list-group list-group-flush small mb-3">
+                            <div class="list-group-item px-0 py-1 d-flex justify-content-between">
+                                <span class="text-muted">Автомобиль:</span>
+                                <span class="fw-semibold">{{ inst.car_model }}</span>
+                            </div>
+                            <div class="list-group-item px-0 py-1 d-flex justify-content-between">
+                                <span class="text-muted">Коробка передач:</span>
+                                <span class="badge bg-secondary">{{ inst.transmission }}</span>
+                            </div>
+                            <div class="list-group-item px-0 py-1 d-flex justify-content-between">
+                                <span class="text-muted">Стаж вождения:</span>
+                                <span class="fw-semibold">{{ inst.experience_years }} лет</span>
+                            </div>
+                            <div class="list-group-item px-0 py-1 d-flex justify-content-between">
+                                <span class="text-muted">Стоимость занятия:</span>
+                                <span class="fw-bold text-success">{{ int(inst.hourly_rate) }} ₽ / час</span>
+                            </div>
+                        </div>
+
+                        <a href="{{ url_for('driving_calendar', instructor_id=inst.user_id) }}" class="btn btn-primary w-100 btn-sm">
+                            <i class="bi bi-calendar-event me-1"></i> Выбрать время
+                        </a>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- БАННЕР ПДД ЭКЗАМЕНА -->
+    <div class="p-4 p-md-5 mb-4 rounded-3 text-bg-dark position-relative overflow-hidden">
+        <div class="col-md-8">
+            <h2 class="display-6 fw-bold">Готовы сдать внутренний экзамен?</h2>
+            <p class="lead my-3">
+                Проверьте свои знания в симуляторе официального экзамена ГИБДД: 20 вопросов, таймер 20 минут, не более 2 ошибок.
+                После сдачи результат будет подписан цифровой подписью HMAC-SHA256 и внесен в ведомость.
+            </p>
+            <a href="{{ url_for('pdd_exam') if current_user.is_authenticated else url_for('login') }}" class="btn btn-warning btn-lg fw-bold">
+                <i class="bi bi-play-circle-fill me-1"></i> Начать экзамен ПДД
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

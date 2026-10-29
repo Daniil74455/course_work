@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}О школе | Автошкола-Эксперт DriveSecure{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row align-items-center mb-5">
+        <div class="col-lg-7">
+            <h1 class="fw-bold mb-3">Автошкола «Эксперт»</h1>
+            <p class="lead text-muted">
+                Ведущее образовательное учреждение подготовки водителей категорий «A», «B», «C» с государственной лицензией и собственной аккредитованной площадкой (автодромом).
+            </p>
+            <p>
+                Мы внедряем передовые методы цифровизации учебного процесса: единую электронную ведомость занятий, защищенный тренажер теоретических билетов ПДД и криптографическую защиту результатов внутренних экзаменов на базе отечественных и мировых криптографических стандартов.
+            </p>
+            <div class="d-flex gap-3 mt-4">
+                <div class="border rounded p-3 text-center bg-white shadow-sm flex-fill">
+                    <div class="fs-3 fw-bold text-primary">12+</div>
+                    <div class="small text-muted">Лет успешной работы</div>
+                </div>
+                <div class="border rounded p-3 text-center bg-white shadow-sm flex-fill">
+                    <div class="fs-3 fw-bold text-success">96%</div>
+                    <div class="small text-muted">Сдача в ГИБДД с 1 раза</div>
+                </div>
+                <div class="border rounded p-3 text-center bg-white shadow-sm flex-fill">
+                    <div class="fs-3 fw-bold text-info">25+</div>
+                    <div class="small text-muted">Новых автомобилей</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-5 mt-4 mt-lg-0">
+            <div class="card p-4 border-primary">
+                <h5 class="fw-bold text-primary mb-3"><i class="bi bi-shield-check"></i> Политика безопасности ИС</h5>
+                <ul class="list-unstyled mb-0 d-flex flex-column gap-2 small">
+                    <li><i class="bi bi-check2-circle text-success me-2"></i> <strong>Шифрование ПДн (152-ФЗ):</strong> Номера телефонов, паспорта и медсправки зашифрованы алгоритмом Fernet (AES-128-CBC).</li>
+                    <li><i class="bi bi-check2-circle text-success me-2"></i> <strong>HMAC-SHA256 подпись:</strong> Экзаменационные протоколы подписываются системным мастер-ключом.</li>
+                    <li><i class="bi bi-check2-circle text-success me-2"></i> <strong>Блокчейн-цепочка хешей:</strong> Предотвращает несанкционированное удаление или изменение оценок.</li>
+                    <li><i class="bi bi-check2-circle text-success me-2"></i> <strong>Защита сессий:</strong> 15-минутные защищенные токены с возможностью мгновенного отзыва администратором.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

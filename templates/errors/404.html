@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block title %}Страница не найдена (404) | DriveSecure{% endblock %}
+
+{% block content %}
+<div class="container py-5 text-center">
+    <div class="display-1 text-primary fw-bold mb-3">404</div>
+    <h3 class="fw-bold mb-3">Запрашиваемая страница не найдена</h3>
+    <p class="text-muted mx-auto mb-4" style="max-width: 500px;">
+        Возможно, адрес был введен неверно или запрашиваемый ресурс был перемещен.
+    </p>
+    <a href="{{ url_for('index') }}" class="btn btn-primary">Вернуться на главную</a>
+</div>
+{% endblock %}

@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+
+{% block title %}Интерактивное расписание | Автошкола-Эксперт DriveSecure{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <div>
+            <h2 class="fw-bold mb-1"><i class="bi bi-calendar3 text-primary"></i> Запись на практическое вождение</h2>
+            <p class="text-muted mb-0">Кликните на свободный слот в календаре для бронирования занятия</p>
+        </div>
+        <div class="d-flex gap-2">
+            <select id="instructorFilter" class="form-select form-select-sm" style="min-width: 220px;" onchange="filterInstructor(this.value)">
+                <option value="">Все инструкторы</option>
+                {% for inst in instructors %}
+                    <option value="{{ inst.user_id }}" {% if selected_instructor_id == inst.user_id %}selected{% endif %}>
+                        {{ inst.user.full_name }} ({{ inst.car_model }}, {{ inst.transmission }})
+                    </option>
+                {% endfor %}
+            </select>
+            <a href="{{ url_for('driving_catalog') }}" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-list"></i> Каталог
+            </a>
+        </div>
+    </div>
+
+    <!-- КОНТЕЙНЕР FULLCALENDAR -->
+    <div class="card p-3 shadow-sm bg-white">
+        <div id="calendar" style="min-height: 650px;"></div>
+    </div>
+</div>
+
+<!-- МОДАЛЬНОЕ ОКНО ПОДТВЕРЖДЕНИЯ БРОНИРОВАНИЯ -->
+<div class="modal fade" id="bookingModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title fw-bold"><i class="bi bi-car-front-fill me-2"></i> Подтверждение записи</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="bookingForm" method="POST" action="">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="price" id="modalPriceInput" value="">
+
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="text-muted small">Инструктор:</label>
+                        <h6 class="fw-bold" id="modalInstructor"></h6>
+                    </div>
+                    <div class="mb-3">
+                        <label class="text-muted small">Автомобиль и коробка передач:</label>
+                        <div class="fw-semibold" id="modalCar"></div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <label class="text-muted small">Дата и время:</label>
+                            <div class="fw-bold text-primary" id="modalDateTime"></div>
+                        </div>
+                        <div class="col-6">
+                            <label class="text-muted small">Стоимость занятия:</label>
+                            <div class="fw-bold text-success fs-5" id="modalPrice"></div>
+                        </div>
+                    </div>
+                    <div class="alert alert-info py-2 small mb-0">
+                        <i class="bi bi-info-circle me-1"></i> Продолжительность урока вождения: <strong>1.5 часа (90 минут)</strong>. Пожалуйста, приходите за 10 минут до начала.
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Отмена</button>
+                    {% if current_user.is_authenticated and current_user.is_student() %}
+                        <button type="submit" class="btn btn-success btn-sm px-4 fw-semibold">Записаться на занятие</button>
+                    {% elif current_user.is_authenticated %}
+                        <span class="text-danger small">Запись доступна только курсантам</span>
+                    {% else %}
+                        <a href="{{ url_for('login') }}" class="btn btn-primary btn-sm">Войти для записи</a>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let calendar;
+    document.addEventListener('DOMContentLoaded', function() {
+        const calendarEl = document.getElementById('calendar');
+        const initialInstructorId = "{{ selected_instructor_id or '' }}";
+
+        let apiUrl = '/api/slots';
+        if (initialInstructorId) {
+            apiUrl += '?instructor_id=' + initialInstructorId;
+        }
+
+        calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'timeGridWeek',
+            locale: 'ru',
+            firstDay: 1, // Понедельник
+            slotMinTime: '08:00:00',
+            slotMaxTime: '21:00:00',
+            allDaySlot: false,
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'timeGridWeek,timeGridDay,dayGridMonth'
+            },
+            buttonText: {
+                today: 'Сегодня',
+                month: 'Месяц',
+                week: 'Неделя',
+                day: 'День'
+            },
+            events: apiUrl,
+            eventClick: function(info) {
+                info.jsEvent.preventDefault();
+                const props = info.event.extendedProps;
+                const slotId = props.slot_id;
+                const price = props.price;
+
+                document.getElementById('modalInstructor').textContent = props.instructor;
+                document.getElementById('modalCar').textContent = props.car;
+
+                const start = info.event.start;
+                const end = info.event.end;
+                const dateStr = start.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                const timeStr = start.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }) + ' - ' +
+                                end.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+
+                document.getElementById('modalDateTime').textContent = dateStr + ' ' + timeStr;
+                document.getElementById('modalPrice').textContent = price + ' ₽';
+                document.getElementById('modalPriceInput').value = price;
+
+                const form = document.getElementById('bookingForm');
+                form.action = '/driving/book/' + slotId;
+
+                const bookingModal = new bootstrap.Modal(document.getElementById('bookingModal'));
+                bookingModal.show();
+            }
+        });
+
+        calendar.render();
+    });
+
+    function filterInstructor(instructorId) {
+        let newUrl = '/api/slots';
+        if (instructorId) {
+            newUrl += '?instructor_id=' + instructorId;
+        }
+        calendar.removeAllEventSources();
+        calendar.addEventSource(newUrl);
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block title %}Журнал занятий | Автошкола-Эксперт DriveSecure{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold mb-1"><i class="bi bi-person-check text-primary"></i> Проведенные и текущие записи курсантов</h3>
+            <p class="text-muted mb-0">Отмечайте завершение практических занятий и оставляйте комментарии курсанту</p>
+        </div>
+        <a href="{{ url_for('instructor_slots') }}" class="btn btn-outline-primary btn-sm">
+            <i class="bi bi-calendar-plus"></i> Управление расписанием
+        </a>
+    </div>
+
+    <div class="card p-4">
+        {% if bookings %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle small mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Курсант</th>
+                            <th>Контакты</th>
+                            <th>Дата и время слота</th>
+                            <th>Статус</th>
+                            <th>Замечания инструктора</th>
+                            <th>Действие</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for b in bookings %}
+                            <tr>
+                                <td>#{{ b.id }}</td>
+                                <td>
+                                    <strong>{{ b.student.full_name if b.student else 'Курсант' }}</strong>
+                                    <div class="text-muted small">{{ b.student.email if b.student else '' }}</div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-light text-dark border">
+                                        <i class="bi bi-telephone-fill text-success"></i> {{ b.student.phone or 'Не указан' }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if b.slot %}
+                                        <strong>{{ b.slot.date.strftime('%d.%m.%Y') }}</strong><br>
+                                        {{ b.slot.start_time.strftime('%H:%M') }} - {{ b.slot.end_time.strftime('%H:%M') }}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if b.status == 'booked' %}
+                                        <span class="badge bg-warning text-dark">Забронировано</span>
+                                    {% elif b.status == 'completed' %}
+                                        <span class="badge bg-success">Проведено</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Отменено</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {{ b.instructor_notes or '<span class="text-muted">-</span>'|safe }}
+                                </td>
+                                <td>
+                                    {% if b.status == 'booked' %}
+                                        <button type="button" class="btn btn-success btn-sm py-0" data-bs-toggle="modal" data-bs-target="#completeModal{{ b.id }}">
+                                            Завершить
+                                        </button>
+
+                                        <!-- МОДАЛЬНОЕ ОКНО ОТМЕТКИ ЗАНЯТИЯ -->
+                                        <div class="modal fade" id="completeModal{{ b.id }}" tabindex="-1" aria-hidden="true">
+                                            <div class="modal-dialog">
+                                                <div class="modal-content">
+                                                    <div class="modal-header bg-success text-white">
+                                                        <h6 class="modal-title fw-bold">Отметка о проведении занятия #{{ b.id }}</h6>
+                                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                                    </div>
+                                                    <form method="POST" action="{{ url_for('complete_booking', booking_id=b.id) }}">
+                                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                        <div class="modal-body">
+                                                            <div class="mb-3">
+                                                                <label class="form-label small fw-semibold">Курсант: {{ b.student.full_name }}</label>
+                                                            </div>
+                                                            <div class="mb-3">
+                                                                <label class="form-label small fw-semibold">Замечания по вождению / освоенные упражнения (автодром, город):</label>
+                                                                <textarea name="notes" class="form-control" rows="3" placeholder="Упражнения: параллельная парковка, разворот в ограниченном пространстве выполнены отлично..."></textarea>
+                                                                <div class="form-text small text-muted"><i class="bi bi-shield-check text-success"></i> Ввод очищается от опасных XSS-скриптов библиотекой bleach.</div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Отмена</button>
+                                                            <button type="submit" class="btn btn-success btn-sm">Подтвердить (+2 часа вождения)</button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% else %}
+                                        <span class="text-muted small">Закрыто</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-muted text-center py-4 small">У вас пока нет активных или завершенных записей курсантов.</div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}Отзывы об инструкторах | DriveSecure{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <!-- ФОРМА ОТЗЫВА -->
+        <div class="col-lg-5 mb-4">
+            <div class="card p-4">
+                <h4 class="fw-bold mb-3"><i class="bi bi-chat-heart text-danger"></i> Оставить отзыв об инструкторе</h4>
+
+                {% if current_user.is_authenticated %}
+                    <form method="POST" action="{{ url_for('reviews_view') }}">
+                        {{ form.hidden_tag() }}
+
+                        <div class="mb-3">
+                            {{ form.instructor_id.label(class="form-label small fw-semibold") }}
+                            {{ form.instructor_id(class="form-select") }}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.rating.label(class="form-label small fw-semibold") }}
+                            {{ form.rating(class="form-select") }}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.comment.label(class="form-label small fw-semibold") }}
+                            {{ form.comment(class="form-control", rows="4", placeholder="Поделитесь вашим опытом обучения...") }}
+                            <div class="form-text small text-muted">
+                                <i class="bi bi-shield-check text-success"></i> Защита от Stored XSS: любой HTML/JS код автоматически вырезается библиотекой bleach перед сохранением.
+                            </div>
+                        </div>
+
+                        <div class="d-grid">
+                            {{ form.submit(class="btn btn-primary") }}
+                        </div>
+                    </form>
+                {% else %}
+                    <div class="alert alert-warning small mb-0">
+                        Чтобы оставить отзыв, пожалуйста, <a href="{{ url_for('login') }}" class="fw-bold">авторизуйтесь в системе</a>.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- СПИСОК ОТЗЫВОВ -->
+        <div class="col-lg-7">
+            <h4 class="fw-bold mb-3">Отзывы курсантов</h4>
+
+            {% if reviews %}
+                <div class="d-flex flex-column gap-3">
+                    {% for r in reviews %}
+                        <div class="card p-3">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div>
+                                    <span class="fw-bold">{{ r.student.full_name if r.student else 'Курсант' }}</span>
+                                    <span class="text-muted small">об инструкторе</span>
+                                    <span class="badge bg-light text-dark border">{{ r.instructor.full_name if r.instructor else 'Инструктор' }}</span>
+                                </div>
+                                <div class="text-warning">
+                                    {% for _ in range(r.rating) %}★{% endfor %}
+                                </div>
+                            </div>
+                            <p class="text-secondary small mb-2">{{ r.comment }}</p>
+                            <div class="text-muted small text-end" style="font-size: 0.75rem;">
+                                {{ r.created_at.strftime('%d.%m.%Y %H:%M') }}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-muted text-center py-4">Отзывов пока нет. Будьте первым!</div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

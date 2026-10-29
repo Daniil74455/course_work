@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}Редактирование пользователя #{{ user.id }} | DriveSecure{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card p-4 shadow-sm">
+                <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+                    <h4 class="fw-bold mb-0">Редактирование пользователя #{{ user.id }}</h4>
+                    <a href="{{ url_for('admin_users') }}" class="btn btn-outline-secondary btn-sm">Назад к списку</a>
+                </div>
+
+                <form method="POST" action="{{ url_for('admin_edit_user', user_id=user.id) }}">
+                    {{ form.hidden_tag() }}
+
+                    <div class="mb-3">
+                        {{ form.full_name.label(class="form-label small fw-semibold") }}
+                        {{ form.full_name(class="form-control" + (" is-invalid" if form.full_name.errors else "")) }}
+                        {% for error in form.full_name.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.email.label(class="form-label small fw-semibold") }}
+                        {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else "")) }}
+                        {% for error in form.email.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.phone.label(class="form-label small fw-semibold") }}
+                        {{ form.phone(class="form-control") }}
+                        <div class="form-text small text-muted"><i class="bi bi-lock-fill text-success"></i> Будет зашифровано алгоритмом Fernet.</div>
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.role.label(class="form-label small fw-semibold") }}
+                        {{ form.role(class="form-select") }}
+                        {% if not current_user.is_owner() %}
+                            <div class="form-text small text-warning"><i class="bi bi-info-circle"></i> Назначение роли Администратора доступно только Владельцу (Owner).</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-4">
+                        {{ form.new_password.label(class="form-label small fw-semibold") }}
+                        {{ form.new_password(class="form-control", placeholder="Введите новый пароль, если требуется сброс") }}
+                        <div class="form-text small text-muted">Оставьте пустым, чтобы сохранить текущий пароль пользователя.</div>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('admin_users') }}" class="btn btn-secondary">Отмена</a>
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

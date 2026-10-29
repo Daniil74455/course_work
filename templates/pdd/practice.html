@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block title %}Билет №{{ ticket_number }} | Тренажер ПДД{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <a href="{{ url_for('pdd_index') }}" class="btn btn-outline-secondary btn-sm mb-2">
+                <i class="bi bi-arrow-left"></i> К списку билетов
+            </a>
+            <h2 class="fw-bold mb-0">Билет №{{ ticket_number }} (Режим тренировки)</h2>
+        </div>
+        <div class="text-end">
+            <span class="badge bg-success fs-6" id="correctCounter">Верно: 0</span>
+            <span class="badge bg-danger fs-6 ms-1" id="wrongCounter">Ошибок: 0</span>
+        </div>
+    </div>
+
+    <!-- ВОПРОСЫ БИЛЕТА -->
+    <div class="row justify-content-center">
+        <div class="col-lg-9">
+            {% for q in questions %}
+                <div class="card p-4 mb-4 question-block" id="questionBox{{ q.id }}">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="badge bg-primary">Вопрос №{{ q.question_number }}</span>
+                        <span class="text-muted small">{{ q.topic }}</span>
+                    </div>
+
+                    <h5 class="fw-bold mb-3">{{ q.question_text }}</h5>
+
+                    <div class="options-container list-group mb-3">
+                        <button type="button" class="list-group-item list-group-item-action quiz-option" onclick="checkOption({{ q.id }}, 1, this)">
+                            <strong>1.</strong> {{ q.option_1 }}
+                        </button>
+                        <button type="button" class="list-group-item list-group-item-action quiz-option" onclick="checkOption({{ q.id }}, 2, this)">
+                            <strong>2.</strong> {{ q.option_2 }}
+                        </button>
+                        {% if q.option_3 %}
+                            <button type="button" class="list-group-item list-group-item-action quiz-option" onclick="checkOption({{ q.id }}, 3, this)">
+                                <strong>3.</strong> {{ q.option_3 }}
+                            </button>
+                        {% endif %}
+                        {% if q.option_4 %}
+                            <button type="button" class="list-group-item list-group-item-action quiz-option" onclick="checkOption({{ q.id }}, 4, this)">
+                                <strong>4.</strong> {{ q.option_4 }}
+                            </button>
+                        {% endif %}
+                    </div>
+
+                    <!-- БЛОК ПОЯСНЕНИЯ (СКРЫТ ДО ОТВЕТА) -->
+                    <div class="explanation-box alert alert-secondary small d-none" id="explanationBox{{ q.id }}">
+                        <div class="fw-bold mb-1"><i class="bi bi-info-circle-fill text-primary"></i> Пояснение из ПДД:</div>
+                        <div class="explanation-text">{{ q.explanation }}</div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let correctCount = 0;
+    let wrongCount = 0;
+    const answeredQuestions = new Set();
+
+    function checkOption(questionId, selectedOption, element) {
+        if (answeredQuestions.has(questionId)) {
+            return; // Запрет повторного клика
+        }
+        answeredQuestions.add(questionId);
+
+        fetch('/pdd/api/check-answer', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({
+                question_id: questionId,
+                selected_option: selectedOption
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            const container = element.parentElement;
+            const buttons = container.querySelectorAll('.quiz-option');
+
+            // Подсветка правильного ответа
+            buttons[data.correct_option - 1].classList.add('correct');
+
+            if (data.is_correct) {
+                element.classList.add('correct');
+                correctCount++;
+                document.getElementById('correctCounter').textContent = 'Верно: ' + correctCount;
+            } else {
+                element.classList.add('wrong');
+                wrongCount++;
+                document.getElementById('wrongCounter').textContent = 'Ошибок: ' + wrongCount;
+            }
+
+            // Показываем блок пояснения
+            const explBox = document.getElementById('explanationBox' + questionId);
+            if (explBox) {
+                explBox.classList.remove('d-none');
+            }
+        })
+        .catch(err => {
+            console.error('Ошибка проверки ответа:', err);
+        });
+    }
+</script>
+{% endblock %}

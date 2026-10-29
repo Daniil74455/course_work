@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block title %}Управление слотами вождения | Автошкола-Эксперт DriveSecure{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <!-- ФОРМА ДОБАВЛЕНИЯ СЛОТА -->
+        <div class="col-lg-4 mb-4">
+            <div class="card p-4">
+                <h5 class="fw-bold mb-3"><i class="bi bi-calendar-plus text-primary"></i> Добавить слот вождения</h5>
+                <form method="POST" action="{{ url_for('instructor_slots') }}">
+                    {{ form.hidden_tag() }}
+
+                    <div class="mb-3">
+                        {{ form.date.label(class="form-label small fw-semibold") }}
+                        {{ form.date(class="form-control" + (" is-invalid" if form.date.errors else ""), type="date") }}
+                        {% for error in form.date.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            {{ form.start_time.label(class="form-label small fw-semibold") }}
+                            {{ form.start_time(class="form-control", type="time") }}
+                        </div>
+                        <div class="col-6">
+                            {{ form.end_time.label(class="form-label small fw-semibold") }}
+                            {{ form.end_time(class="form-control", type="time") }}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.price.label(class="form-label small fw-semibold") }}
+                        {{ form.price(class="form-control", type="number") }}
+                    </div>
+
+                    <div class="d-grid">
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- ТАБЛИЦА СЛОТОВ -->
+        <div class="col-lg-8">
+            <div class="card p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0"><i class="bi bi-list-check text-success"></i> Мои рабочие слоты</h5>
+                    <a href="{{ url_for('instructor_bookings') }}" class="btn btn-outline-primary btn-sm">Журнал занятий курсантов</a>
+                </div>
+
+                {% if slots %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle small mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Дата</th>
+                                    <th>Время</th>
+                                    <th>Цена</th>
+                                    <th>Статус брони</th>
+                                    <th>Действие</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for s in slots %}
+                                    <tr>
+                                        <td><strong>{{ s.date.strftime('%d.%m.%Y') }}</strong></td>
+                                        <td>{{ s.start_time.strftime('%H:%M') }} - {{ s.end_time.strftime('%H:%M') }}</td>
+                                        <td>{{ int(s.price) }} ₽</td>
+                                        <td>
+                                            {% if s.is_booked %}
+                                                <span class="badge bg-danger">Забронирован</span>
+                                            {% else %}
+                                                <span class="badge bg-success">Свободен</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if not s.is_booked %}
+                                                <form method="POST" action="{{ url_for('delete_slot', slot_id=s.id) }}" onsubmit="return confirm('Удалить данный слот из расписания?');">
+                                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                    <button type="submit" class="btn btn-outline-danger btn-sm py-0">Удалить</button>
+                                                </form>
+                                            {% else %}
+                                                <span class="text-muted small">В работе</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-muted text-center py-4 small">Вы еще не добавили ни одного слота в график. Заполните форму слева.</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

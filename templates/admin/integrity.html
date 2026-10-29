@@ -1,0 +1,186 @@
+{% extends "base.html" %}
+
+{% block title %}Сканер целостности БД (HMAC) | DriveSecure{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <h2 class="fw-bold mb-1"><i class="bi bi-shield-shaded text-success"></i> Криптографический контроль целостности БД</h2>
+            <p class="text-muted mb-0">Верификация HMAC-подписей и блокчейн-цепочки хешей всех протоколов экзаменов</p>
+        </div>
+        <div class="d-flex gap-2">
+            <!-- КНОПКИ ДЛЯ ДЕМОНСТРАЦИИ ПЕНТЕСТА И ПРОВЕРКИ -->
+            <form method="POST" action="{{ url_for('admin_tamper_demo') }}" class="d-inline">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="action" value="tamper">
+                <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('Выполнить симуляцию атаки? Оценка последнего экзамена будет напрямую изменена в БД без HMAC-подписи.');">
+                    <i class="bi bi-bug-fill me-1"></i> Симулировать подделку в БД
+                </button>
+            </form>
+
+            <form method="POST" action="{{ url_for('admin_tamper_demo') }}" class="d-inline">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="action" value="restore">
+                <button type="submit" class="btn btn-outline-success btn-sm">
+                    <i class="bi bi-arrow-repeat me-1"></i> Восстановить целостность
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- СТАТУС СКАНЕРА -->
+    {% if report.is_healthy %}
+        <div class="card border-success p-4 mb-4 bg-white shadow-sm">
+            <div class="d-flex align-items-center gap-3">
+                <div class="fs-1 text-success"><i class="bi bi-shield-fill-check"></i></div>
+                <div>
+                    <h4 class="fw-bold text-success mb-1">ЦЕЛОСТНОСТЬ БАЗЫ ДАННЫХ В НОРМЕ (100% HEALTHY)</h4>
+                    <p class="text-muted mb-0 small">
+                        Сканер проверил {{ report.total }} протоколов экзаменов. Все цифровые подписи <strong>HMAC-SHA256</strong> совпали, связность блокчейн-цепочки подтверждена. Никаких несанкционированных изменений не обнаружено.
+                    </p>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="card border-danger p-4 mb-4 bg-white shadow-sm">
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <div class="fs-1 text-danger"><i class="bi bi-shield-fill-exclamation"></i></div>
+                <div>
+                    <h4 class="fw-bold text-danger mb-1">ОБНАРУЖЕНА ФАЛЬСИФИКАЦИЯ РЕЗУЛЬТАТОВ ЭКЗАМЕНА!</h4>
+                    <p class="text-danger mb-0 small fw-semibold">
+                        ВНИМАНИЕ: Зафиксированы изменения данных в обход системы! Цифровая подпись протокола не соответствует текущему содержимому.
+                    </p>
+                </div>
+            </div>
+
+            {% if report.tampered_records %}
+                <h6 class="fw-bold text-danger">Скомпрометированные записи:</h6>
+                <div class="table-responsive mb-3">
+                    <table class="table table-bordered table-danger small mb-0">
+                        <thead>
+                            <tr>
+                                <th>ID записи</th>
+                                <th>Курсант (ID)</th>
+                                <th>Тип экзамена</th>
+                                <th>Текущий балл в БД</th>
+                                <th>Статус</th>
+                                <th>Причина срабатывания сканера</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for t in report.tampered_records %}
+                                <tr>
+                                    <td><strong>#{{ t.id }}</strong></td>
+                                    <td>#{{ t.student_id }}</td>
+                                    <td>{{ t.exam_type }}</td>
+                                    <td class="fw-bold">{{ t.score }}</td>
+                                    <td>{{ 'СДАН' if t.is_passed else 'НЕ СДАН' }}</td>
+                                    <td class="fw-bold">{{ t.reason }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+
+            {% if report.broken_chains %}
+                <h6 class="fw-bold text-danger">Разрывы блокчейн-цепочки:</h6>
+                <div class="table-responsive">
+                    <table class="table table-bordered table-warning small mb-0">
+                        <thead>
+                            <tr>
+                                <th>ID записи</th>
+                                <th>Ожидаемый prev_hash</th>
+                                <th>Фактический prev_hash в базе</th>
+                                <th>Диагноз сканера</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for b in report.broken_chains %}
+                                <tr>
+                                    <td>#{{ b.id }}</td>
+                                    <td><code>{{ b.expected_prev_hash[:24] }}...</code></td>
+                                    <td><code>{{ b.actual_prev_hash[:24] }}...</code></td>
+                                    <td class="fw-bold text-danger">{{ b.reason }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+        </div>
+    {% endif %}
+
+    <!-- СВОДНЫЕ СЧЕТЧИКИ СКАНЕРА -->
+    <div class="row g-3 mb-4 text-center">
+        <div class="col-md-3 col-6">
+            <div class="card p-3">
+                <div class="fs-2 fw-bold text-primary">{{ report.total }}</div>
+                <div class="text-muted small">Всего протоколов</div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="card p-3">
+                <div class="fs-2 fw-bold text-success">{{ report.valid_count }}</div>
+                <div class="text-muted small">Валидных подписей</div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="card p-3">
+                <div class="fs-2 fw-bold text-danger">{{ report.tampered_count }}</div>
+                <div class="text-muted small">Подделок обнаружено</div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="card p-3">
+                <div class="fs-2 fw-bold text-warning">{{ report.chain_breaks_count }}</div>
+                <div class="text-muted small">Разрывов цепочки</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ТАБЛИЦА БЛОКЧЕЙН-РЕЕСТРА ЭКЗАМЕНОВ -->
+    <div class="card p-4">
+        <h5 class="fw-bold mb-3"><i class="bi bi-link-45deg text-primary"></i> Журнал блокчейн-цепочки записей экзаменов</h5>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle small mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>ID</th>
+                        <th>Курсант</th>
+                        <th>Экзамен</th>
+                        <th>Балл</th>
+                        <th>Статус</th>
+                        <th>Prev Hash (Связка)</th>
+                        <th>Record Hash (Хеш блока)</th>
+                        <th>HMAC Подпись</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ex in exams %}
+                        <tr>
+                            <td>#{{ ex.id }}</td>
+                            <td>{{ ex.student.full_name if ex.student else 'ID: ' ~ ex.student_id }}</td>
+                            <td>{{ 'Теория' if ex.exam_type == 'theory' else 'Практика' }}</td>
+                            <td class="fw-bold">{{ ex.score }}</td>
+                            <td>
+                                <span class="badge {{ 'bg-success' if ex.is_passed else 'bg-danger' }}">
+                                    {{ 'Сдан' if ex.is_passed else 'Не сдан' }}
+                                </span>
+                            </td>
+                            <td><span class="hash-text text-muted" title="{{ ex.prev_hash }}">{{ ex.prev_hash[:12] }}...</span></td>
+                            <td><span class="hash-text" title="{{ ex.record_hash }}">{{ ex.record_hash[:12] }}...</span></td>
+                            <td>
+                                <span class="signature-badge" title="{{ ex.signature }}">
+                                    <i class="bi bi-shield-check"></i> {{ ex.signature[:12] }}...
+                                </span>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

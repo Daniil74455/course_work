@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block title %}Регистрация | Автошкола-Эксперт DriveSecure{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card p-4 shadow-sm">
+                <div class="text-center mb-4">
+                    <div class="fs-1 text-success mb-2"><i class="bi bi-person-check-fill"></i></div>
+                    <h4 class="fw-bold">Регистрация в ИС</h4>
+                    <p class="text-muted small">Создайте личный кабинет курсанта или инструктора</p>
+                </div>
+
+                <form method="POST" action="{{ url_for('register') }}">
+                    {{ form.hidden_tag() }}
+
+                    <div class="mb-3">
+                        {{ form.full_name.label(class="form-label small fw-semibold") }}
+                        {{ form.full_name(class="form-control" + (" is-invalid" if form.full_name.errors else ""), placeholder="Иванов Иван Иванович") }}
+                        {% for error in form.full_name.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.email.label(class="form-label small fw-semibold") }}
+                        {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else ""), placeholder="ivanov@example.com") }}
+                        {% for error in form.email.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.phone.label(class="form-label small fw-semibold") }}
+                        {{ form.phone(class="form-control" + (" is-invalid" if form.phone.errors else ""), placeholder="+7 (999) 123-45-67") }}
+                        <div class="form-text small text-muted"><i class="bi bi-lock-fill text-success"></i> Номер телефона шифруется в БД алгоритмом Fernet (152-ФЗ).</div>
+                        {% for error in form.phone.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-6">
+                            {{ form.role.label(class="form-label small fw-semibold") }}
+                            {{ form.role(class="form-select") }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.category.label(class="form-label small fw-semibold") }}
+                            {{ form.category(class="form-select") }}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.password.label(class="form-label small fw-semibold") }}
+                        {{ form.password(class="form-control" + (" is-invalid" if form.password.errors else ""), placeholder="••••••••") }}
+                        {% for error in form.password.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mb-4">
+                        {{ form.confirm_password.label(class="form-label small fw-semibold") }}
+                        {{ form.confirm_password(class="form-control" + (" is-invalid" if form.confirm_password.errors else ""), placeholder="••••••••") }}
+                        {% for error in form.confirm_password.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="d-grid mb-3">
+                        {{ form.submit(class="btn btn-success btn-block") }}
+                    </div>
+                </form>
+
+                <div class="text-center small">
+                    Уже зарегистрированы? <a href="{{ url_for('login') }}" class="text-primary fw-semibold">Войти в аккаунт</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
