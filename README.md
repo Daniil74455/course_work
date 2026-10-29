@@ -109,21 +109,11 @@ pytest -v
 
 ---
 
-## 📄 КОМПИЛЯЦИЯ ОТЧЕТА ПО ГОСТ 7.32 В WORD (.DOCX)
-
-Для генерации официальной пояснительной записки в формате Microsoft Word:
-```bash
-python3 docs/report_builder/generate_final_docx.py
-```
-Скомпилированный файл будет сохранен в корень проекта: `Otchet_Kursovaya_Avtoshkola.docx` (Times New Roman 14 pt, 1.5 интервал, ГОСТ-поля).
-
----
-
 ## 🏛️ СТРУКТУРА РЕПОЗИТОРИЯ
 
 ```text
 ├── .env.example                        # Шаблон переменных окружения и секретных ключей
-├── .gitignore                          # Исключения Git (venv, .env, *.db, *.docx)
+├── .gitignore                          # Исключения Git (venv, .env, *.db)
 ├── requirements.txt                    # Фиксированные зависимости Python
 ├── config.py                           # Конфигурация приложения и параметры сессий
 ├── extensions.py                       # Расширения Flask (SQLAlchemy, CSRFProtect, LoginManager)
@@ -150,16 +140,7 @@ python3 docs/report_builder/generate_final_docx.py
 │   ├── student/                        # Реестр электронных сертификатов экзаменов
 │   ├── admin/                          # Дашборд, пользователи, сессии, аудит, сканер целостности
 │   └── errors/                         # Страницы ошибок 403, 404, 500
-├── static/                             # Стили CSS и статические ресурсы
-└── docs/                               # Документация этапов и материалы к защите
-    ├── Proekt.md                       # Этап 1: Архитектура и схема базы данных
-    ├── Etap2.md                        # Этап 2: Базовый функционал и сидирование 5000+
-    ├── Etap3_Zashita.md                # Этап 3: Подсистема ИБ (Fernet, HMAC, Blockchain)
-    ├── Etap4_Testirovanie.md           # Этап 4: Протокол испытаний и пентестинга
-    ├── Otchet_Kursovaya_Avtoshkola.md  # Этап 5: Полный текст пояснительной записки (ГОСТ 7.32)
-    ├── Zashchitnaya_Rech_i_Prezentaciya.md # Этап 6: Презентация (10 слайдов) и речь на 6 минут
-    └── report_builder/
-        └── generate_final_docx.py      # Компилятор пояснительной записки в Microsoft Word
+└── static/                             # Стили CSS и статические ресурсы
 ```
 
 ---
