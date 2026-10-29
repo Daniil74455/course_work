@@ -23,6 +23,9 @@ def create_app(config_class=Config):
     csrf.init_app(app)
     login_manager.init_app(app)
 
+    # Регистрация полезных глобальных функций в шаблонизаторе Jinja
+    app.jinja_env.globals.update(int=int, str=str, len=len)
+
     @login_manager.user_loader
     def load_user(user_id):
         return User.query.get(int(user_id))

@@ -68,7 +68,7 @@
                                     <tr>
                                         <td><strong>{{ s.date.strftime('%d.%m.%Y') }}</strong></td>
                                         <td>{{ s.start_time.strftime('%H:%M') }} - {{ s.end_time.strftime('%H:%M') }}</td>
-                                        <td>{{ int(s.price) }} ₽</td>
+                                        <td>{{ s.price|int }} ₽</td>
                                         <td>
                                             {% if s.is_booked %}
                                                 <span class="badge bg-danger">Забронирован</span>

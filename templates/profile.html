@@ -50,7 +50,7 @@
                         </div>
                         <div class="d-flex justify-content-between py-1 small">
                             <span class="text-muted">Ставка:</span>
-                            <span class="fw-bold text-success">{{ int(current_user.instructor_profile.hourly_rate) }} ₽/ч</span>
+                            <span class="fw-bold text-success">{{ current_user.instructor_profile.hourly_rate|int }} ₽/ч</span>
                         </div>
                     {% endif %}
                 </div>
